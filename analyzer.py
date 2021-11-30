@@ -2,6 +2,9 @@ import argparse
 from scapy.all import *
 import matplotlib.pyplot as plt
 from scapy.layers.dot11 import RadioTap
+import subprocess
+import sys
+
 
 
 def file_path(path):
@@ -122,7 +125,7 @@ def read_pcap(file_path):
 def analyze_capture_packets(packets_count):
     captured_packets = sniff(count=packets_count)
     # write packets in a pcap
-    file_path = "Resources\captured_packets.pcap"
+    file_path = 'Resources\Pcap2.pcap' # "Resources\captured_packets.pcap"
     wrpcap(file_path, captured_packets)
     read_pcap(file_path)
 
@@ -136,7 +139,14 @@ if __name__ == "__main__":
     print_args(args)
     file_path, capture_packets = set_parameters(args)
 
-    if file_path:
-        read_pcap(file_path)
-    elif capture_packets:
-        analyze_capture_packets(capture_packets)
+    # if file_path:
+    #     read_pcap(file_path)
+    # elif capture_packets:
+    #     analyze_capture_packets(capture_packets)
+
+    result = subprocess.run([".\\Suricata\\suricata_run.bat"])
+    #result = subprocess.run([".\\Suricata\\suricata_run.bat", "-r", "Resources\\Pcap2.pcap"])
+
+
+
+

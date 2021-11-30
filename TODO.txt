@@ -1,0 +1,1 @@
+- plik konfiguracyjny ze ścieżką do folderu instalacyjnego Suricata
