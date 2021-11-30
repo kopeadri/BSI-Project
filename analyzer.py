@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scapy.layers.dot11 import RadioTap
 import subprocess
 import sys
+import os
 
 
 
@@ -139,13 +140,29 @@ if __name__ == "__main__":
     print_args(args)
     file_path, capture_packets = set_parameters(args)
 
+    file_name = os.path.basename(file_path)
+    file_name_wo_ext = os.path.splitext(file_name)[0]
+    file_log_dir = file_name_wo_ext + "_log"
+    if not os.path.exists(file_log_dir):
+        os.mkdir(file_log_dir)
+    print(file_name, file_name_wo_ext, file_log_dir)
+
     # if file_path:
     #     read_pcap(file_path)
     # elif capture_packets:
     #     analyze_capture_packets(capture_packets)
 
-    result = subprocess.run([".\\Suricata\\suricata_run.bat"])
-    #result = subprocess.run([".\\Suricata\\suricata_run.bat", "-r", "Resources\\Pcap2.pcap"])
+    command = [r"D:\Programy\Suricata\suricata.exe", "-c", r"D:\Programy\Suricata\suricata.yaml",
+                                                     "-l", ".\\Suricata\\" + file_log_dir,
+                                                    "-v", "-r", "Resources\\" + file_name]
+    #result = subprocess.run([".\\Suricata\\suricata_run.bat"])
+    result = subprocess.run(command)
+
+
+
+
+
+
 
 
 
