@@ -142,7 +142,8 @@ if __name__ == "__main__":
 
     file_name = os.path.basename(file_path)
     file_name_wo_ext = os.path.splitext(file_name)[0]
-    file_log_dir = file_name_wo_ext + "_log"
+    file_log_dir = ".\\Suricata\\" + file_name_wo_ext + "_log"
+
     if not os.path.exists(file_log_dir):
         os.mkdir(file_log_dir)
     print(file_name, file_name_wo_ext, file_log_dir)
@@ -153,8 +154,8 @@ if __name__ == "__main__":
     #     analyze_capture_packets(capture_packets)
 
     command = [r"D:\Programy\Suricata\suricata.exe", "-c", r"D:\Programy\Suricata\suricata.yaml",
-                                                     "-l", ".\\Suricata\\" + file_log_dir,
-                                                    "-v", "-r", "Resources\\" + file_name]
+                                                     "-l", file_log_dir,
+                                                    "-v", "-r", file_path]
     #result = subprocess.run([".\\Suricata\\suricata_run.bat"])
     result = subprocess.run(command)
 
