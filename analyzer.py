@@ -3,23 +3,27 @@ from scapy.all import *
 import matplotlib.pyplot as plt
 from scapy.layers.dot11 import RadioTap
 
+
 def file_path(path):
     if os.path.isfile(os.path.normpath(path)):
         return os.path.normpath(path)
     else:
         raise argparse.ArgumentTypeError(f"readable_file:{path} is not a valid path")
 
+
 def parse_arguments(args):
     arg_parser = argparse.ArgumentParser(description='PCAPs analyzer')
-    arg_parser.add_argument('-f', '--file', metavar='FILE', type=file_path, default= None,
-                            help = 'If used, the PCAP file from the given path is analyzed.')
+    arg_parser.add_argument('-f', '--file', metavar='FILE', type=file_path, default=None,
+                            help='If used, the PCAP file from the given path is analyzed.')
     arg_parser.add_argument('-c', '--capture-packets', metavar='CAPTURE_PACKETS', type=int, default=0,
-                            help = 'If used, the given number of packets will be captured and analyzed.')
+                            help='If used, the given number of packets will be captured and analyzed.')
     return arg_parser.parse_args(args)
+
 
 def print_args(args):
     for arg in vars(args):
         print(arg, ":", getattr(args, arg))
+
 
 def set_parameters(args):
     file_path = args.file
@@ -32,7 +36,7 @@ def read_pcap(file_path):
     pcap_file_name = os.path.split(pcap_file_path)[1][:-5]
 
     # x-axis temporal resolution used during graphing.
-    timestep = 1 #float(sys.argv[2])
+    timestep = 1  # float(sys.argv[2])
 
     # reading packets from a pcap file
     packets = rdpcap(pcap_file_path)
@@ -49,7 +53,6 @@ def read_pcap(file_path):
                   for _ in range(list_length)]
 
     mac_tracker = [set() for _ in statistics]
-
 
     print("Parsing packets...")
 
@@ -86,9 +89,9 @@ def read_pcap(file_path):
     for i, mac_counts in enumerate(statistics):
         mac_counts["unique_macs"] = len(mac_tracker[i])
 
-    #t = str(int(time.time()))[3:]
-    #subdir = "{}_{}".format(pcap_file, t)
-    results_folder = "Results\\Statistics\\"+pcap_file_name
+    # t = str(int(time.time()))[3:]
+    # subdir = "{}_{}".format(pcap_file, t)
+    results_folder = "Results\\Statistics\\" + pcap_file_name
     if not os.path.isdir(results_folder):
         os.mkdir(results_folder)
 
@@ -98,7 +101,7 @@ def read_pcap(file_path):
         plt.xlabel("time (seconds)")
         plt.ylabel(obj + " per second")
         plt.plot([i * timestep for i, _ in enumerate(statistics)], [y[obj] for y in statistics])
-        plt.savefig("{}\\{}_histogram.png".format(results_folder,obj))
+        plt.savefig("{}\\{}_histogram.png".format(results_folder, obj))
         plt.clf()
 
         # Cumulative
@@ -112,9 +115,8 @@ def read_pcap(file_path):
             s += x
             cumulative[i] = s
         plt.plot([i * timestep for i, _ in enumerate(statistics)], cumulative)
-        plt.savefig("{}\\{}_cumulative.png".format(results_folder,obj))
+        plt.savefig("{}\\{}_cumulative.png".format(results_folder, obj))
         plt.clf()
-
 
 
 def analyze_capture_packets(packets_count):
@@ -127,9 +129,9 @@ def analyze_capture_packets(packets_count):
 
 if __name__ == "__main__":
     args = parse_arguments(
-        #['--help'])
+        # ['--help'])
         ['-f', 'Resources\Pcap2.pcap'])
-        #['-c', '5'])
+    # ['-c', '5'])
 
     print_args(args)
     file_path, capture_packets = set_parameters(args)
