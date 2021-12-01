@@ -1,1 +1,8 @@
-- plik konfiguracyjny ze ścieżką do folderu instalacyjnego Suricata
+- plik konfiguracyjny ze ścieżką do folderu instalacyjnego Suricata, żeby nie było na sztywno ścieżek
+- prosty interfejs graficzny
+- podpiąć analizowanie ruchu live
+- stworzenie raportu - jakieś powiafomienie/mail
+
+
+
+
