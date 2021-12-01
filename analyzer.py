@@ -1,11 +1,13 @@
 import argparse
+from collections import Counter
+
 from scapy.all import *
 import matplotlib.pyplot as plt
 from scapy.layers.dot11 import RadioTap
 import subprocess
 import sys
 import os
-
+import json
 
 
 def file_path(path):
@@ -130,41 +132,88 @@ def analyze_capture_packets(packets_count):
     wrpcap(file_path, captured_packets)
     read_pcap(file_path)
 
+def parse_suricate_json(eve_json_path):
+    # # src ip:src port -> dst ip:dst port [pkt_count]
+    # with open(eve_json_path) as f:
+    #     for line in f:
+    #         event = json.loads(line)
+    #         if event['event_type'] == 'flow':
+    #             print("%s:%d --> %s:%d [pkts %d]" % (event['src_ip'], event['src_port'], event['dest_ip'], event['dest_port'], event['flow']['pkts_toserver']))\
+    #
+    # # application protocol or layer 3 protocol if not available to the display
+    # with open(eve_json_path) as f:
+    #     for line in f:
+    #         event = json.loads(line)
+    #         if event['event_type'] == 'flow':
+    #             if 'app_proto' in event:
+    #                 app_proto = event['app_proto']
+    #             else:
+    #                 app_proto = event['proto']
+    #             print("%s:%d - %s -> %s:%d [pkts %d]" % (event['src_ip'], event['src_port'], app_proto, event['dest_ip'], event['dest_port'], event['flow']['pkts_toserver']))
+    #
+    #
+
+    cnt_categories = Counter()
+    cnt_signature = Counter()
+    cnt_severity = Counter()
+
+    with open(eve_json_path) as f:
+        for line in f:
+            event = json.loads(line)
+            if event['event_type'] == 'alert':
+                if 'app_proto' in event:
+                    app_proto = event['app_proto']
+                else:
+                    app_proto = event['proto']
+                cnt_categories[event['alert']['category']] += 1
+                cnt_signature[event['alert']['signature']] += 1
+                cnt_severity[event['alert']['severity']] += 1
+                print(
+                    f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}]")
+
+    print("\nCategory\t\t\t\t\t\t\toccurrences")
+    for key, value in sorted(cnt_categories.items()):
+        print(f"{key:<40} {value}")
+
+    print("\nSignature\t\t\t\t\t\t\t\t\t\t\t\t\toccurrences")
+    for key, value in sorted(cnt_signature.items()):
+        print(f"{key:<63} {value}")
+
+    print("\nSeverity\toccurrences")
+    for key, value in sorted(cnt_severity.items()):
+        print(f"{key:<15} {value}")
+
 
 if __name__ == "__main__":
     args = parse_arguments(
         # ['--help'])
         ['-f', 'Resources\Pcap2.pcap'])
-    # ['-c', '5'])
+         # ['-c', '5'])
 
     print_args(args)
     file_path, capture_packets = set_parameters(args)
 
     file_name = os.path.basename(file_path)
     file_name_wo_ext = os.path.splitext(file_name)[0]
-    file_log_dir = ".\\Suricata\\" + file_name_wo_ext + "_log"
+    file_log_dir = os.path.join('.', 'Suricata', file_name_wo_ext + "_log")
 
     if not os.path.exists(file_log_dir):
         os.mkdir(file_log_dir)
     print(file_name, file_name_wo_ext, file_log_dir)
 
-    # if file_path:
-    #     read_pcap(file_path)
-    # elif capture_packets:
-    #     analyze_capture_packets(capture_packets)
+    if file_path:
+        read_pcap(file_path)
+    elif capture_packets:
+        analyze_capture_packets(capture_packets)
 
     command = [r"D:\Programy\Suricata\suricata.exe", "-c", r"D:\Programy\Suricata\suricata.yaml",
                                                      "-l", file_log_dir,
                                                     "-v", "-r", file_path]
-    #result = subprocess.run([".\\Suricata\\suricata_run.bat"])
     result = subprocess.run(command)
 
+    eve_json_path = os.path.join(file_log_dir, 'eve.json')
 
-
-
-
-
-
+    parse_suricate_json(eve_json_path)
 
 
 
