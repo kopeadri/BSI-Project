@@ -2,6 +2,7 @@
 - prosty interfejs graficzny
 - podpiąć analizowanie ruchu live
 - stworzenie raportu - jakieś powiafomienie/mail
+- zebranie wszystkich grafik z analizy statystycznej w jeden obraz i zapisywanie jego, a nie pojedynczych obrazków
 
 
 

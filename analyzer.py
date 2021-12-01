@@ -8,6 +8,7 @@ import subprocess
 import sys
 import os
 import json
+import time
 
 
 def file_path(path):
@@ -17,12 +18,19 @@ def file_path(path):
         raise argparse.ArgumentTypeError(f"readable_file:{path} is not a valid path")
 
 
+def positive_int(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
+    return ivalue
+
+
 def parse_arguments(args):
     arg_parser = argparse.ArgumentParser(description='PCAPs analyzer')
     arg_parser.add_argument('-f', '--file', metavar='FILE', type=file_path, default=None,
-                            help='If used, the PCAP file from the given path is analyzed.')
-    arg_parser.add_argument('-c', '--capture-packets', metavar='CAPTURE_PACKETS', type=int, default=0,
-                            help='If used, the given number of packets will be captured and analyzed.')
+                            help='If used, the PCAP file from the given path is analyzed. If provided together with CAPTURE_PACKETS argument, FILE is destination location for captured PCAP.')
+    arg_parser.add_argument('-c', '--capture-packets', metavar='CAPTURE_PACKETS', type=positive_int, default=0,
+                            help='If used, the given number of packets will be captured, saved and analyzed. Default location for captured PCAP is ./Resources/captured_TIMESTAMP.pcap.')
     return arg_parser.parse_args(args)
 
 
@@ -37,9 +45,9 @@ def set_parameters(args):
     return file_path, capture_packets
 
 
-def read_pcap(file_path):
+def statistic_analysis(file_path, results_dir):
     pcap_file_path = file_path
-    pcap_file_name = os.path.split(pcap_file_path)[1][:-5]
+    # pcap_file_name = os.path.split(pcap_file_path)[1][:-5]
 
     # x-axis temporal resolution used during graphing.
     timestep = 1  # float(sys.argv[2])
@@ -97,9 +105,9 @@ def read_pcap(file_path):
 
     # t = str(int(time.time()))[3:]
     # subdir = "{}_{}".format(pcap_file, t)
-    results_folder = "Results\\Statistics\\" + pcap_file_name
-    if not os.path.isdir(results_folder):
-        os.mkdir(results_folder)
+    # results_folder = "Results\\Statistics\\" + pcap_file_name
+    # if not os.path.isdir(results_folder):
+    #     os.mkdir(results_folder)
 
     for obj in objects:
         # Non-cumulative
@@ -107,7 +115,7 @@ def read_pcap(file_path):
         plt.xlabel("time (seconds)")
         plt.ylabel(obj + " per second")
         plt.plot([i * timestep for i, _ in enumerate(statistics)], [y[obj] for y in statistics])
-        plt.savefig("{}\\{}_histogram.png".format(results_folder, obj))
+        plt.savefig("{}\\{}_histogram.png".format(results_dir, obj))
         plt.clf()
 
         # Cumulative
@@ -121,16 +129,29 @@ def read_pcap(file_path):
             s += x
             cumulative[i] = s
         plt.plot([i * timestep for i, _ in enumerate(statistics)], cumulative)
-        plt.savefig("{}\\{}_cumulative.png".format(results_folder, obj))
+        plt.savefig("{}\\{}_cumulative.png".format(results_dir, obj))
         plt.clf()
 
 
-def analyze_capture_packets(packets_count):
+def make_pcap(file_path, packets_count):
     captured_packets = sniff(count=packets_count)
-    # write packets in a pcap
-    file_path = 'Resources\Pcap2.pcap' # "Resources\captured_packets.pcap"
+    if not file_path:  # if file_path not provided create default path
+        timestr = time.strftime("%Y%m%d%H%M%S")
+        file_path = os.path.join("Resources", "captured_" + timestr + ".pcap")
+
+    # write packets in a pcap file
     wrpcap(file_path, captured_packets)
-    read_pcap(file_path)
+    return file_path
+
+def suricata_analysis(file_path, results_dir):
+    command = [r"D:\Programy\Suricata\suricata.exe", "-c", r"D:\Programy\Suricata\suricata.yaml",
+               "-l", results_dir,
+               "-v", "-r", file_path]
+    result = subprocess.run(command)
+
+    eve_json_path = os.path.join(results_dir, 'eve.json')
+
+    parse_suricate_json(eve_json_path)
 
 def parse_suricate_json(eve_json_path):
     # # src ip:src port -> dst ip:dst port [pkt_count]
@@ -171,11 +192,11 @@ def parse_suricate_json(eve_json_path):
                 print(
                     f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}]")
 
-    print("\nCategory\t\t\t\t\t\t\toccurrences")
+    print("\nCategory\t\toccurrences")
     for key, value in sorted(cnt_categories.items()):
         print(f"{key:<40} {value}")
 
-    print("\nSignature\t\t\t\t\t\t\t\t\t\t\t\t\toccurrences")
+    print("\nSignature\t\toccurrences")
     for key, value in sorted(cnt_signature.items()):
         print(f"{key:<63} {value}")
 
@@ -185,35 +206,31 @@ def parse_suricate_json(eve_json_path):
 
 
 if __name__ == "__main__":
+    # args = parse_arguments(sys.argv[1:])  # omit program name
     args = parse_arguments(
-        # ['--help'])
         ['-f', 'Resources\Pcap2.pcap'])
-         # ['-c', '5'])
+        # ['--help'])
+        # ['-c', '5'])
 
     print_args(args)
     file_path, capture_packets = set_parameters(args)
 
+    if capture_packets > 0:
+        file_path = make_pcap(file_path, capture_packets)
+
+    if not file_path:
+        sys.exit("Arguments not provided!")  # 2 Unix programs generally use 2 for command line syntax errors and 1 for all other kind of errors
+
     file_name = os.path.basename(file_path)
     file_name_wo_ext = os.path.splitext(file_name)[0]
-    file_log_dir = os.path.join('.', 'Suricata', file_name_wo_ext + "_log")
+    results_dir = os.path.join("Results", file_name_wo_ext)
 
-    if not os.path.exists(file_log_dir):
-        os.mkdir(file_log_dir)
-    print(file_name, file_name_wo_ext, file_log_dir)
+    if not os.path.exists(results_dir):
+        os.mkdir(results_dir)
+    print(file_name, file_name_wo_ext, results_dir)
 
-    if file_path:
-        read_pcap(file_path)
-    elif capture_packets:
-        analyze_capture_packets(capture_packets)
+    statistic_analysis(file_path, results_dir)
 
-    command = [r"D:\Programy\Suricata\suricata.exe", "-c", r"D:\Programy\Suricata\suricata.yaml",
-                                                     "-l", file_log_dir,
-                                                    "-v", "-r", file_path]
-    result = subprocess.run(command)
-
-    eve_json_path = os.path.join(file_log_dir, 'eve.json')
-
-    parse_suricate_json(eve_json_path)
-
+    suricata_analysis(file_path, results_dir)
 
 
