@@ -1,8 +1,14 @@
 import os
 import sys
+import json
 
 from StatisticAnalyzer import StatisticAnalyzer
 from SuricateAnalyzer import SuricateAnalyzer
+
+
+def get_suricata_install_dir():
+    with open('config.json', "r") as f:
+        return json.load(f)["SURICATA_INSTALL_DIR"]
 
 
 class Analyzer:
@@ -18,7 +24,7 @@ class Analyzer:
         self.validate_parameters()
 
         self.statistic_analyzer = StatisticAnalyzer(self.pcap_file_path, self.capture_packets_cnt)
-        self.suricate_analyzer = SuricateAnalyzer(self.pcap_file_path, 'static')
+        self.suricate_analyzer = SuricateAnalyzer(self.pcap_file_path, 'static', get_suricata_install_dir())
 
     def set_parameters_from_args(self, args):
         self.pcap_file_path = args.file

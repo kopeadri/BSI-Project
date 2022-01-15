@@ -1,13 +1,13 @@
 from SuricateAnalyzer import SuricateAnalyzer
 from scapy.all import *
-
+import Analyzer
 
 class RealTimeAnalyzer:
     def __init__(self, interface, n_packets):
         self.interface = interface
         self.n_packets = n_packets
         self.result_dir = "\Results\Real-time"
-        self.suricate_analyzer = SuricateAnalyzer('temp.pcap', 'real-time')
+        self.suricate_analyzer = SuricateAnalyzer('temp.pcap', 'real-time', Analyzer.get_suricata_install_dir())
 
     def check_interface(self):
         try:
