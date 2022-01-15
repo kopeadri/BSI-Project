@@ -32,11 +32,16 @@ class StatisticAnalyzer:
         mac_tracker = [set() for _ in statistics]
 
         print("Parsing packets...")
-
+        err_cnt=0
         for packet in packets:
             index = int((packet.time - start_time) // timestep)
             statistics[index]["packet_count"] += 1
-            statistics[index]["bits"] += packet.len
+            try:
+                statistics[index]["bits"] += packet.len
+            except AttributeError:
+                err = f"{AttributeError}len"
+                err_cnt += 1
+
             # We use packet.version to check if packet was corrupts
             if RadioTap in packet and packet.version == 0:
                 mac_tracker[index].add(packet.addr2)

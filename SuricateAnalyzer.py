@@ -7,7 +7,8 @@ import json
 from collections import Counter
 
 
-SURICATA_INSTALL_DIR = "E:\Tools\Suricata"  # TODO wywalić do pliku konfiguracyjnego
+# SURICATA_INSTALL_DIR = "E:\Tools\Suricata"
+SURICATA_INSTALL_DIR = "D:\Programy\Suricata"  # TODO wywalić do pliku konfiguracyjnego
 
 
 class SuricateAnalyzer:
@@ -15,12 +16,13 @@ class SuricateAnalyzer:
         self.pcap_file_path = file_path
         self.result_dir = "."
         self.alert_flag = False
-        self.mode = mode            # 'static', 'real-time'
+        self.mode = mode            # 'static', 'real-time' TODO enum
 
     def analyze(self):
         self.call_suricata()
         eve_json_path = os.path.join(self.result_dir, 'eve.json')
-        self.parse_suricate_json(eve_json_path)
+        alerts_summary = self.parse_suricate_json(eve_json_path)
+        return alerts_summary
 
     def call_suricata(self):
         suricata_exe_path = os.path.join(SURICATA_INSTALL_DIR, "suricata.exe")
@@ -56,7 +58,8 @@ class SuricateAnalyzer:
                             f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}]")
                         malicious_packets += f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}\n]"
 
-        date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        # date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        date = datetime.now().strftime("%d_%m_%Y__%H_%M_%S")
 
         if self.mode == 'real-time':
             if self.alert_flag:
@@ -67,6 +70,10 @@ class SuricateAnalyzer:
                 self.print_summary(cnt_categories, cnt_signature, cnt_severity, malicious_packets, date)
         else:
             self.print_summary(cnt_categories, cnt_signature, cnt_severity, malicious_packets, date)
+
+        return {'categories': cnt_categories,
+                'signature': cnt_signature,
+                'severity': cnt_severity}
 
     def print_summary(self, cnt_categories, cnt_signature, cnt_severity, malicious_packets, date):
         original_stdout = sys.stdout

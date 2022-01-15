@@ -6,15 +6,19 @@ from SuricateAnalyzer import SuricateAnalyzer
 
 
 class Analyzer:
-    def __init__(self, args):
-        self.pcap_file_path = None
-        self.capture_packets_cnt = 0
+    # def __init__(self, args):
+    def __init__(self, pcap_file_path='', capture_packets_cnt=0):
+        # self.pcap_file_path = None
+        self.pcap_file_path = pcap_file_path
+        # self.capture_packets_cnt = 0
+        self.capture_packets_cnt = capture_packets_cnt
         self.result_dir = "."
 
-        self.set_parameters_from_args(args)
+        # self.set_parameters_from_args(args)
+        self.validate_parameters()
 
         self.statistic_analyzer = StatisticAnalyzer(self.pcap_file_path, self.capture_packets_cnt)
-        self.suricate_analyzer = SuricateAnalyzer(self.pcap_file_path)
+        self.suricate_analyzer = SuricateAnalyzer(self.pcap_file_path, 'static')
 
     def set_parameters_from_args(self, args):
         self.pcap_file_path = args.file
@@ -33,14 +37,15 @@ class Analyzer:
             self.suricate_analyzer.set_pcap_file_path(self.pcap_file_path)
         self.set_result_dir()
         self.statistic_analyzer.analyze()
-        self.suricate_analyzer.analyze()
+        alerts_summary = self.suricate_analyzer.analyze()
+        return alerts_summary
 
     def set_result_dir(self):
         file_name = os.path.basename(self.pcap_file_path)
         file_name_wo_ext = os.path.splitext(file_name)[0]
         self.result_dir = os.path.join("Results", file_name_wo_ext)
 
-        if not os.path.exists(self.result_dir):
+        if not os.path.exists(self.result_dir):  # TODO ale jeśli istniał to go wywal i stwórz nowy
             os.mkdir(self.result_dir)
 
         self.statistic_analyzer.set_result_dir(self.result_dir)
