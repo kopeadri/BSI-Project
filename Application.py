@@ -55,8 +55,8 @@ class Application(Tk):
         frame = self.frames[page_name]
         frame.tkraise()
 
-    def draw_alerts_summary(self, alerts_summary):
-        self.framePcapAnalysis.refresh_plots(alerts_summary)
+    def draw_alerts_summary(self, alerts_summary, alerts_df):
+        self.framePcapAnalysis.refresh_plots(alerts_summary, alerts_df)
 
 
 class StartPage(Frame):

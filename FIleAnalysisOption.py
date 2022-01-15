@@ -44,6 +44,6 @@ class PageAnalyzeFile(LabelFrame):
 
     def run_analyzer(self):
         analyzer = Analyzer(self.file_path)
-        alerts_summary = analyzer.run()
-        self.controller.draw_alerts_summary(alerts_summary)
+        alerts_summary, alerts_df = analyzer.run()
+        self.controller.draw_alerts_summary(alerts_summary, alerts_df)
 

@@ -37,8 +37,8 @@ class Analyzer:
             self.suricate_analyzer.set_pcap_file_path(self.pcap_file_path)
         self.set_result_dir()
         self.statistic_analyzer.analyze()
-        alerts_summary = self.suricate_analyzer.analyze()
-        return alerts_summary
+        alerts_summary, alerts_df = self.suricate_analyzer.analyze()
+        return alerts_summary, alerts_df
 
     def set_result_dir(self):
         file_name = os.path.basename(self.pcap_file_path)

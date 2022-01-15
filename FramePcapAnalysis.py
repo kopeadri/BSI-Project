@@ -2,6 +2,8 @@ from tkinter import *
 from tkinter import LabelFrame
 from tkinter import ttk
 import matplotlib
+import pandas as pd
+
 matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
@@ -18,6 +20,7 @@ class FramePcapAnalysis(LabelFrame):
         self.categories = {}
         self.signature = {}
         self.severity = {}
+        self.alerts_df = pd.DataFrame()
 
 
         container = Frame(self)
@@ -39,10 +42,11 @@ class FramePcapAnalysis(LabelFrame):
         frame = self.frames[cont]
         frame.tkraise()
 
-    def refresh_plots(self, alerts_summary):
+    def refresh_plots(self, alerts_summary, alerts_df):
         self.categories = alerts_summary['categories']
         self.signature = alerts_summary['signature']
         self.severity = alerts_summary['severity']
+        self.alerts_df = alerts_df
         for f in self.frames:
             self.frames[f].redraw()
 
@@ -200,36 +204,66 @@ class PageSummary(Frame):
         label = Label(self, text="Summary of Alerts", font=LARGE_FONT)
         label.pack(pady=10, padx=10)
 
+        self.controller = controller
+
         button1 = Button(self, text="Back to Home", command=lambda: controller.show_frame(StartPage))
         button1.pack()
 
+        # columns = ['Category', 'Signatures','Severity']
+
         ## Treeview Widget
-        tv1 = ttk.Treeview(self)
+        self.tv1 = ttk.Treeview(self)
 
         treescrolly = Scrollbar(self, orient="vertical",
-                                   command=tv1.yview)  # command means update the yaxis view of the widget
+                                   command=self.tv1.yview)  # command means update the yaxis view of the widget
         treescrollx = Scrollbar(self, orient="horizontal",
-                                   command=tv1.xview)  # command means update the xaxis view of the widget
-        tv1.configure(xscrollcommand=treescrollx.set,
+                                   command=self.tv1.xview)  # command means update the xaxis view of the widget
+        self.tv1.configure(xscrollcommand=treescrollx.set,
                       yscrollcommand=treescrolly.set)  # assign the scrollbars to the Treeview Widget
         treescrollx.pack(side="bottom", fill="x")  # make the scrollbar fill the x axis of the Treeview widget
         treescrolly.pack(side="right", fill="y")  # make the scrollbar fill the y axis of the Treeview widget
 
+        # print(self.controller.alerts_df.columns.values)
+        # if 'alert.metadata.created_at' not in self.controller.alerts_df.columns.values:
+        #     return
+        self.columns = ['alert.metadata.created_at', 'alert.category',  'alert.severity', 'http.hostname', 'http.url']
+
+        # data_sec = self.controller.alerts_df
+        # data_alerts_only = self.controller.alerts_df.loc[self.controller.alerts_df['alert.metadata.created_at'].notnull(), ['alert.metadata.created_at', 'alert.category',
+        #                                                       'alert.severity', 'http.hostname', 'http.url']]
+        # print(data_alerts_only)
         # df = data_alerts_only
         #
-        # tv1.delete(*tv1.get_children())
-        # tv1["column"] = list(df.columns)
+        self.tv1.delete(*self.tv1.get_children())
+        self.tv1["columns"] = self.columns #list(df.columns)
+        # self.tv1.column('timestamp')
+        # self.tv1.column('alert.category')
+        # self.tv1.column('alert.severity')
+        # self.tv1.column('http.hostname')
+        # self.tv1.column('http.url')
+        # self.tv1.heading('timestamp', text="Time")
+        # self.tv1.heading('timestamp', text="Time")
+        # self.tv1.heading('timestamp', text="Time")
+        # self.tv1.heading('timestamp', text="Time")
         # tv1["show"] = "headings"
         #
         # for column in tv1["columns"]:
         #     tv1.heading(column, text=column)  # let the column heading = column name
+        for column in self.columns:
+            self.tv1.heading(column, text=column)  # let the column heading = column name
         #
         # df_rows = df.to_numpy().tolist()  # turns the dataframe into a list of lists
         # for row in df_rows:
         #     tv1.insert("", "end", values=row)
-
+        self.tv1.pack(side=TOP, fill=BOTH, expand=True)
             # https://gist.github.com/RamonWill/0686bd8c793e2e755761a8f20a42c762
 
     def redraw(self):
+        print(self.controller.alerts_df.columns.values)
+        # self.controller.alerts_df
+        df_rows = self.controller.alerts_df[self.columns].to_numpy().tolist()
+        self.tv1.delete(*self.tv1.get_children())
+        for row in df_rows:
+            self.tv1.insert("", "end", values=row)
         pass
 
