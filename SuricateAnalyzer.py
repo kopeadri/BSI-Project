@@ -1,15 +1,21 @@
-import subprocess
 import os
+import sys
+import subprocess
+from datetime import datetime
+from plyer import notification
 import json
 from collections import Counter
 
-SURICATA_INSTALL_DIR = "D:\Programy\Suricata"  # TODO wywalić do pliku konfiguracyjnego
+
+SURICATA_INSTALL_DIR = "E:\Tools\Suricata"  # TODO wywalić do pliku konfiguracyjnego
 
 
 class SuricateAnalyzer:
-    def __init__(self, file_path):
+    def __init__(self, file_path, mode):
         self.pcap_file_path = file_path
         self.result_dir = "."
+        self.alert_flag = False
+        self.mode = mode            # 'static', 'real-time'
 
     def analyze(self):
         self.call_suricata()
@@ -23,34 +29,18 @@ class SuricateAnalyzer:
         result = subprocess.run(command)
 
     def parse_suricate_json(self, eve_json_path):
-        # # src ip:src port -> dst ip:dst port [pkt_count]
-        # with open(eve_json_path) as f:
-        #     for line in f:
-        #         event = json.loads(line)
-        #         if event['event_type'] == 'flow':
-        #             print("%s:%d --> %s:%d [pkts %d]" % (event['src_ip'], event['src_port'], event['dest_ip'], event['dest_port'], event['flow']['pkts_toserver']))\
-        #
-        # # application protocol or layer 3 protocol if not available to the display
-        # with open(eve_json_path) as f:
-        #     for line in f:
-        #         event = json.loads(line)
-        #         if event['event_type'] == 'flow':
-        #             if 'app_proto' in event:
-        #                 app_proto = event['app_proto']
-        #             else:
-        #                 app_proto = event['proto']
-        #             print("%s:%d - %s -> %s:%d [pkts %d]" % (event['src_ip'], event['src_port'], app_proto, event['dest_ip'], event['dest_port'], event['flow']['pkts_toserver']))
-        #
-        #
-
         cnt_categories = Counter()
         cnt_signature = Counter()
         cnt_severity = Counter()
+
+        malicious_packets = ""
 
         with open(eve_json_path) as f:
             for line in f:
                 event = json.loads(line)
                 if event['event_type'] == 'alert':
+                    self.alert_flag = True
+
                     if 'app_proto' in event:
                         app_proto = event['app_proto']
                     else:
@@ -58,23 +48,44 @@ class SuricateAnalyzer:
                     cnt_categories[event['alert']['category']] += 1
                     cnt_signature[event['alert']['signature']] += 1
                     cnt_severity[event['alert']['severity']] += 1
-                    print(
-                        f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}]")
 
-        self.print_summary(cnt_categories, cnt_signature, cnt_severity)
+                    if self.mode == 'real-time':
+                        malicious_packets += f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}\n]"
+                    else:
+                        print(
+                            f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}]")
+                        malicious_packets += f"{event['timestamp']}:  {event['src_ip']}:{event['src_port']} - {app_proto} ->  {event['dest_ip']}:{event['dest_port']}  [{event['alert']['severity']}]  [{event['alert']['category']}]  [{event['alert']['signature']}\n]"
 
-    def print_summary(self, cnt_categories, cnt_signature, cnt_severity):
-        print("\nCategory\t\toccurrences")
-        for key, value in sorted(cnt_categories.items()):
-            print(f"{key:<40} {value}")
+        date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-        print("\nSignature\t\toccurrences")
-        for key, value in sorted(cnt_signature.items()):
-            print(f"{key:<63} {value}")
+        if self.mode == 'real-time':
+            if self.alert_flag:
+                notification.notify(title="Analizator ruchu sieciowego {}".format(date),
+                                    message="Wykryto podejrzany ruch w sieci - sprawdź logi!",
+                                    app_icon="Resources\\warning_icon.ico",
+                                    timeout=50)
+                self.print_summary(cnt_categories, cnt_signature, cnt_severity, malicious_packets, date)
+        else:
+            self.print_summary(cnt_categories, cnt_signature, cnt_severity, malicious_packets, date)
 
-        print("\nSeverity\toccurrences")
-        for key, value in sorted(cnt_severity.items()):
-            print(f"{key:<15} {value}")
+    def print_summary(self, cnt_categories, cnt_signature, cnt_severity, malicious_packets, date):
+        original_stdout = sys.stdout
+        with open('Alert_logs_' + date + '.txt', 'a') as f:
+            sys.stdout = f
+            print(malicious_packets)
+            print("\nCategory\t\toccurrences")
+            for key, value in sorted(cnt_categories.items()):
+                print(f"{key:<40} {value}")
+
+            print("\nSignature\t\toccurrences")
+            for key, value in sorted(cnt_signature.items()):
+                print(f"{key:<63} {value}")
+
+            print("\nSeverity\toccurrences")
+            for key, value in sorted(cnt_severity.items()):
+                print(f"{key:<15} {value}")
+
+            sys.stdout = original_stdout
 
     def set_result_dir(self, result_dir):
         self.result_dir = result_dir
