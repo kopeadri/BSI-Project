@@ -23,7 +23,7 @@ class PageLiveAnalysis(LabelFrame):
         frame_interface = Frame(self)
         frame_interface.pack(side=TOP)
 
-        lbl_interface = Label(frame_interface, text="Interface: ")
+        lbl_interface = Label(frame_interface, text="Network Interface: ")
         lbl_interface.pack(side=LEFT)
         self.sv_interface = StringVar()
         self.sv_interface.set("Wi-Fi")
@@ -43,7 +43,7 @@ class PageLiveAnalysis(LabelFrame):
         # self.plot_axes = plt.subplots(111)
 
         # plt.rcParams["keymap.quit"] = "cmd+w", "q"
-        plt.ion()  # Interactive Mode
+        # plt.ion()  # Interactive Mode
         # plt.show()
         # plt.ylabel("Bytes")  # Labels
         # plt.xlabel("Number of packets")
@@ -68,12 +68,14 @@ class PageLiveAnalysis(LabelFrame):
     def run_analyzer(self):
         btn_run_stop_text = self.sv_run_stop.get()
         if btn_run_stop_text == "Run analysis":
+            plt.ion()
             self.sv_run_stop.set("Stop")
             self.reset_plot()
-            self.analyzer = RealTimeAnalyzer(self.sv_interface.get(), 0, self.plot_axes, self.canvas)
+            self.analyzer = RealTimeAnalyzer(self.sv_interface.get(), 0, self.plot_axes, self.canvas, self.controller)
             # alerts_summary, alerts_df = self.analyzer.monitor_network()
             threading.Thread(target=self.analyzer.monitor_network).start()
         else:
+            plt.ioff()
             self.analyzer.stop()
             self.sv_run_stop.set("Run analysis")
 

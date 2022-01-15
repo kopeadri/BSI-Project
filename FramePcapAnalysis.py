@@ -31,7 +31,7 @@ class FramePcapAnalysis(LabelFrame):
 
         self.frames = {}
 
-        for F in (StartPage, PagePieChart, PagePieChart2, PageSummary):  # tu trzeba dodac każde nowe okienko
+        for F in (StartPage, PageCategoryPieChart, PageSeverityPieChart, PageSummary):  # tu trzeba dodac każde nowe okienko
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -60,11 +60,11 @@ class StartPage(Frame):
         label.pack(pady=10, padx=10)
 
         button3 = Button(self, text="See Alerts per Category",
-                             command=lambda: controller.show_frame(PagePieChart))
+                         command=lambda: controller.show_frame(PageCategoryPieChart))
         button3.pack()
 
         button4 = Button(self, text="See Alerts per Severity",
-                             command=lambda: controller.show_frame(PagePieChart2))
+                         command=lambda: controller.show_frame(PageSeverityPieChart))
         button4.pack()
 
         button5 = Button(self, text="See Alerts Summary",
@@ -74,7 +74,7 @@ class StartPage(Frame):
     def redraw(self):
         pass
 
-class PagePieChart(Frame):
+class PageCategoryPieChart(Frame):
 
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
@@ -87,7 +87,7 @@ class PagePieChart(Frame):
         button1.pack()
 
         button2 = Button(self, text="See Alerts per Severity",
-                             command=lambda: controller.show_frame(PagePieChart2))
+                         command=lambda: controller.show_frame(PageSeverityPieChart))
         button2.pack()
 
         button3 = Button(self, text="See Alerts Summary",
@@ -121,7 +121,7 @@ class PagePieChart(Frame):
         self.sizes = list(self.controller.categories.values())#categories_counts
         self.plot_axes_categories.pie(self.sizes, labels=self.labels, autopct='%1.1f%%', shadow=False, startangle=90)
 
-        self.canvas.draw() #?
+        self.canvas.draw()
 
     def tkraise(self, aboveThis=None):
         # Get a reference to StartPage
@@ -134,7 +134,7 @@ class PagePieChart(Frame):
         super().tkraise(aboveThis)
 
 
-class PagePieChart2(Frame):
+class PageSeverityPieChart(Frame):
 
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
@@ -147,7 +147,7 @@ class PagePieChart2(Frame):
         button1.pack()
 
         button2 = Button(self, text="See Alerts per Category",
-                             command=lambda: controller.show_frame(PagePieChart))
+                         command=lambda: controller.show_frame(PageCategoryPieChart))
         button2.pack()
 
         button3 = Button(self, text="See Alerts Summary",
@@ -209,6 +209,14 @@ class PageSummary(Frame):
         button1 = Button(self, text="Back to Home", command=lambda: controller.show_frame(StartPage))
         button1.pack()
 
+        button2 = Button(self, text="See Alerts per Category",
+                         command=lambda: controller.show_frame(PageCategoryPieChart))
+        button2.pack()
+
+        button3 = Button(self, text="See Alerts per Severity",
+                         command=lambda: controller.show_frame(PageSeverityPieChart))
+        button3.pack()
+
         # columns = ['Category', 'Signatures','Severity']
 
         ## Treeview Widget
@@ -236,34 +244,20 @@ class PageSummary(Frame):
         #
         self.tv1.delete(*self.tv1.get_children())
         self.tv1["columns"] = self.columns #list(df.columns)
-        # self.tv1.column('timestamp')
-        # self.tv1.column('alert.category')
-        # self.tv1.column('alert.severity')
-        # self.tv1.column('http.hostname')
-        # self.tv1.column('http.url')
-        # self.tv1.heading('timestamp', text="Time")
-        # self.tv1.heading('timestamp', text="Time")
-        # self.tv1.heading('timestamp', text="Time")
-        # self.tv1.heading('timestamp', text="Time")
-        # tv1["show"] = "headings"
-        #
-        # for column in tv1["columns"]:
-        #     tv1.heading(column, text=column)  # let the column heading = column name
+
         for column in self.columns:
             self.tv1.heading(column, text=column)  # let the column heading = column name
-        #
-        # df_rows = df.to_numpy().tolist()  # turns the dataframe into a list of lists
-        # for row in df_rows:
-        #     tv1.insert("", "end", values=row)
+
         self.tv1.pack(side=TOP, fill=BOTH, expand=True)
-            # https://gist.github.com/RamonWill/0686bd8c793e2e755761a8f20a42c762
+
 
     def redraw(self):
         print(self.controller.alerts_df.columns.values)
-        # self.controller.alerts_df
+        if 'alert.category' not in self.controller.alerts_df:  # alerts are flattened here
+            return
         df_rows = self.controller.alerts_df[self.columns].to_numpy().tolist()
         self.tv1.delete(*self.tv1.get_children())
         for row in df_rows:
             self.tv1.insert("", "end", values=row)
-        pass
+
 

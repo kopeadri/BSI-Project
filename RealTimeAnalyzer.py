@@ -3,7 +3,8 @@ from scapy.all import *
 import Analyzer
 
 class RealTimeAnalyzer:
-    def __init__(self, interface, n_packets, plot_axes, canvas):
+    def __init__(self, interface, n_packets, plot_axes, canvas, controller):
+        self.controller = controller
         self.interface = interface
         self.n_packets = n_packets
         self.result_dir = "\Results\Real-time"
@@ -37,9 +38,9 @@ class RealTimeAnalyzer:
         # plt.title("Real time Network Traffic")
         # plt.tight_layout()
         # plt.pause(0.5)
-        plt.ion()
-        plt.show()
-        plt.pause(0.5)
+        # plt.ion()
+        # plt.show()
+        # plt.pause(0.5)
 
         yData = []  # Empty list to hold bytes
         i = 0
@@ -86,7 +87,8 @@ class RealTimeAnalyzer:
                     quit()
 
     def call_suricata(self):
-        self.suricate_analyzer.analyze()
+        alerts_summary, alerts_df = self.suricate_analyzer.analyze()
+        self.controller.draw_alerts_summary(alerts_summary, alerts_df)
 
     def stop(self):
         self.is_running = False
