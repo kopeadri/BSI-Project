@@ -7,7 +7,8 @@ from SuricateAnalyzer import SuricateAnalyzer
 
 
 def get_suricata_install_dir():
-    with open('config.json', "r") as f:
+    file_path = (os.path.dirname(__file__)) + '\config.json'
+    with open(file_path, "r") as f:
         return json.load(f)["SURICATA_INSTALL_DIR"]
 
 
@@ -51,8 +52,8 @@ class Analyzer:
         file_name_wo_ext = os.path.splitext(file_name)[0]
         self.result_dir = os.path.join("Results", file_name_wo_ext)
 
-        if not os.path.exists(self.result_dir):  # TODO ale jeśli istniał to go wywal i stwórz nowy
-            os.mkdir(self.result_dir)
+        if not os.path.exists((os.path.dirname(__file__)) +'\\'+ self.result_dir):  # TODO ale jeśli istniał to go wywal i stwórz nowy
+            os.mkdir((os.path.dirname(__file__)) +'\\'+ self.result_dir)
 
         self.statistic_analyzer.set_result_dir(self.result_dir)
         self.suricate_analyzer.set_result_dir(self.result_dir)
