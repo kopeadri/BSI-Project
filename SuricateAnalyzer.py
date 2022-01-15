@@ -8,16 +8,13 @@ from collections import Counter
 import pandas as pd
 
 
-# SURICATA_INSTALL_DIR = "E:\Tools\Suricata"
-SURICATA_INSTALL_DIR = "D:\Programy\Suricata"  # TODO wywalić do pliku konfiguracyjnego
-
-
 class SuricateAnalyzer:
-    def __init__(self, file_path, mode):
+    def __init__(self, file_path, mode, suricata_install_dir):
         self.pcap_file_path = file_path
         self.result_dir = "."
         self.alert_flag = False
-        self.mode = mode            # 'static', 'real-time' TODO enum
+        self.mode = mode  # 'static', 'real-time' TODO enum
+        self.suricata_install_dir = suricata_install_dir
 
     def analyze(self):
         self.call_suricata()
@@ -38,9 +35,10 @@ class SuricateAnalyzer:
         return alerts_df
 
     def call_suricata(self):
-        suricata_exe_path = os.path.join(SURICATA_INSTALL_DIR, "suricata.exe")
-        suricata_config_path = os.path.join(SURICATA_INSTALL_DIR, "suricata.yaml")
-        command = [suricata_exe_path, "-c", suricata_config_path, "-l", self.result_dir, "-r", self.pcap_file_path, "-v"]
+        suricata_exe_path = os.path.join(self.suricata_install_dir, "suricata.exe")
+        suricata_config_path = os.path.join(self.suricata_install_dir, "suricata.yaml")
+        command = [suricata_exe_path, "-c", suricata_config_path, "-l", self.result_dir, "-r", self.pcap_file_path,
+                   "-v"]
         result = subprocess.run(command)
 
     def parse_suricate_json(self, eve_json_path):
@@ -110,5 +108,5 @@ class SuricateAnalyzer:
     def set_result_dir(self, result_dir):
         self.result_dir = result_dir
 
-    def set_pcap_file_path(self,pcap_file_path):
+    def set_pcap_file_path(self, pcap_file_path):
         self.pcap_file_path = pcap_file_path
