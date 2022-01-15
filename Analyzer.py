@@ -5,10 +5,16 @@ import json
 from StatisticAnalyzer import StatisticAnalyzer
 from SuricateAnalyzer import SuricateAnalyzer
 
+SURICATA_INSTALL_DIR = "SURICATA_INSTALL_DIR"
+
 
 def get_suricata_install_dir():
-    with open('config.json', "r") as f:
-        return json.load(f)["SURICATA_INSTALL_DIR"]
+    # json.dumps({SURICATA_INSTALL_DIR: "D:\\Programy\\Suricata"})
+    with open('config.json', "r") as f:  # 'windows-1250', , encoding="UTF-8"
+        # heckData = f.read()
+        config_file = json.load(f)
+        install_dir = config_file[SURICATA_INSTALL_DIR]
+        return install_dir
 
 
 class Analyzer:

@@ -21,7 +21,6 @@ class SuricateAnalyzer:
         eve_json_path = os.path.join(self.result_dir, 'eve.json')
         alerts_summary = self.parse_suricate_json(eve_json_path)
         alerts_df = self.make_alerts_df(eve_json_path)
-
         return alerts_summary, alerts_df
 
     def make_alerts_df(self, eve_json_path):

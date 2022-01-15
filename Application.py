@@ -2,10 +2,14 @@ from tkinter import *
 from tkinter import font as tkfont
 from tkinter import filedialog
 import os
+import threading
+import matplotlib
+matplotlib.use("TkAgg")
 
 from FIleAnalysisOption import PageAnalyzeFile
 from Analyzer import Analyzer
 from FramePcapAnalysis import FramePcapAnalysis
+from RealTimeAnalysisOption import PageLiveAnalysis
 
 
 class Application(Tk):
@@ -13,7 +17,6 @@ class Application(Tk):
         super().__init__()
         self.title("BSI")
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
-
 
         self.create_widgets()
         # self.geometry("800x600")
@@ -75,14 +78,3 @@ class StartPage(Frame):
         button2.pack()
 
 
-class PageLiveAnalysis(LabelFrame):
-
-    def __init__(self, parent, controller):
-        # super().__init__(parent, text="Live analysis")
-        LabelFrame.__init__(self, parent, text="Live analysis")
-        self.controller = controller
-        # label = Label(self, text="This is page 2", font=controller.title_font)
-        # label.pack(side="top", fill="x", pady=10)
-        button = Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
-        button.pack()
