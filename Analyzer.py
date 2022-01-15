@@ -6,6 +6,7 @@ from StatisticAnalyzer import StatisticAnalyzer
 from SuricateAnalyzer import SuricateAnalyzer
 
 SURICATA_INSTALL_DIR = "SURICATA_INSTALL_DIR"
+TEST_MODE = "TEST_MODE"
 
 
 def get_suricata_install_dir():
@@ -13,6 +14,11 @@ def get_suricata_install_dir():
     with open(file_path, "r") as f:
         return json.load(f)[SURICATA_INSTALL_DIR]
 
+
+def get_test_mode():
+    file_path = (os.path.dirname(__file__)) + '\config.json'
+    with open(file_path, "r") as f:
+        return json.load(f)[TEST_MODE]
 
 class Analyzer:
     # def __init__(self, args):

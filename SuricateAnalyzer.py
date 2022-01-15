@@ -7,19 +7,23 @@ import json
 from collections import Counter
 import pandas as pd
 
+import Analyzer
+
 
 class SuricateAnalyzer:
     def __init__(self, file_path, mode, suricata_install_dir, result_dir="."):
         self.pcap_file_path = file_path
         self.result_dir = result_dir
         self.alert_flag = False
-        self.mode = mode  # 'static', 'real-time' TODO enum
+        self.mode = mode  # 'static', 'real-time'
         self.suricata_install_dir = suricata_install_dir
         self.eve_json_path = ""    # Suricata output file
 
     def analyze(self):
         self.eve_json_path = os.path.join(self.result_dir, 'eve.json')
         self.call_suricata()
+        if Analyzer.get_test_mode() and self.mode == 'real-time':
+            self.eve_json_path = os.path.join(self.result_dir, 'eve_alerts_test.json')
         alerts_summary = self.parse_suricate_json(self.eve_json_path)
         alerts_df = self.make_alerts_df(self.eve_json_path)
         return alerts_summary, alerts_df

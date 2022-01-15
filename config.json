@@ -1,3 +1,4 @@
 {
-  "SURICATA_INSTALL_DIR": "E:\\Tools\\Suricata"
+	"SURICATA_INSTALL_DIR": "D:\\Programy\\Suricata",
+	"TEST_MODE": true
 }
