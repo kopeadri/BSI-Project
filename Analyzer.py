@@ -21,15 +21,11 @@ def get_test_mode():
         return json.load(f)[TEST_MODE]
 
 class Analyzer:
-    # def __init__(self, args):
     def __init__(self, pcap_file_path='', capture_packets_cnt=0):
-        # self.pcap_file_path = None
         self.pcap_file_path = pcap_file_path
-        # self.capture_packets_cnt = 0
         self.capture_packets_cnt = capture_packets_cnt
         self.result_dir = "."
 
-        # self.set_parameters_from_args(args)
         self.validate_parameters()
 
         self.statistic_analyzer = StatisticAnalyzer(self.pcap_file_path, self.capture_packets_cnt)
@@ -59,9 +55,10 @@ class Analyzer:
         file_name = os.path.basename(self.pcap_file_path)
         file_name_wo_ext = os.path.splitext(file_name)[0]
         self.result_dir = os.path.join("Results", file_name_wo_ext)
+        full_result_dir_path = os.path.join(os.path.dirname(__file__), self.result_dir)
 
-        if not os.path.exists((os.path.dirname(__file__)) +'\\'+ self.result_dir):  # TODO ale jeśli istniał to go wywal i stwórz nowy
-            os.mkdir((os.path.dirname(__file__)) +'\\'+ self.result_dir)
+        if not os.path.exists(full_result_dir_path):
+            os.mkdir(full_result_dir_path)
 
         self.statistic_analyzer.set_result_dir(self.result_dir)
         self.suricate_analyzer.set_result_dir(self.result_dir)

@@ -1,13 +1,9 @@
 from tkinter import *
 from tkinter import font as tkfont
-from tkinter import filedialog
-import os
-import threading
 import matplotlib
 matplotlib.use("TkAgg")
 
 from FIleAnalysisOption import PageAnalyzeFile
-from Analyzer import Analyzer
 from FramePcapAnalysis import FramePcapAnalysis
 from RealTimeAnalysisOption import PageLiveAnalysis
 
@@ -15,17 +11,10 @@ from RealTimeAnalysisOption import PageLiveAnalysis
 class Application(Tk):
     def __init__(self):
         super().__init__()
-        self.title("BSI")
+        self.title("Network Traffic Analyzer")
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
 
         self.create_widgets()
-        # self.geometry("800x600")
-
-        # the same width
-        # self.columnconfigure((0, 1, 2), weight=1, uniform='col')
-        # self.columnconfigure(0, weight=1, uniform='col')
-        # self.columnconfigure(1, weight=1, uniform='col')
-        # self.columnconfigure(2, weight=1, uniform='col')
 
     def create_widgets(self):
 
@@ -67,8 +56,6 @@ class StartPage(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
-        # label = Label(self, text="This is the start page", font=controller.title_font)
-        # label.pack(side="top", fill="x", pady=10)
 
         button1 = Button(self, text="Analyze .PCAP file",
                             command=lambda: controller.show_frame("PageAnalyzeFile"))

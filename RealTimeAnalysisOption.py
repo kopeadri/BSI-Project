@@ -1,21 +1,17 @@
 from tkinter import *
 import threading
 from RealTimeAnalyzer import RealTimeAnalyzer
-from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib import pyplot as plt
-# from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class PageLiveAnalysis(LabelFrame):
 
     def __init__(self, parent, controller):
-        # super().__init__(parent, text="Live analysis")
         LabelFrame.__init__(self, parent, text="Live analysis")
         self.controller = controller
-        # label = Label(self, text="This is page 2", font=controller.title_font)
-        # label.pack(side="top", fill="x", pady=10)
+
         button = Button(self, text="Go to the start page",
                         command=lambda: controller.show_frame("StartPage"))
         button.pack()

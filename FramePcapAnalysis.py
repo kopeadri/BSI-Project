@@ -3,31 +3,26 @@ from tkinter import LabelFrame
 from tkinter import ttk
 import matplotlib
 import pandas as pd
-
-matplotlib.use("TkAgg")
-from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+matplotlib.use("TkAgg")
 
-LARGE_FONT= ("Verdana", 12)
+LARGE_FONT = ("Verdana", 12)
 
 class FramePcapAnalysis(LabelFrame):
     def __init__(self, master, *args, **kwargs):
         super().__init__(master, text=".PCAP Analysis", width=100, height=700, *args, **kwargs)
-
 
         self.categories = {}
         self.signature = {}
         self.severity = {}
         self.alerts_df = pd.DataFrame()
 
-
         container = Frame(self)
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
-
 
         self.frames = {}
 
@@ -49,7 +44,6 @@ class FramePcapAnalysis(LabelFrame):
         self.alerts_df = alerts_df
         for f in self.frames:
             self.frames[f].redraw()
-
 
 
 class StartPage(Frame):
@@ -94,13 +88,8 @@ class PageCategoryPieChart(Frame):
                              command=lambda: controller.show_frame(PageSummary))
         button3.pack()
 
-        # self.labels = list(controller.categories.keys()) #categories
-        # self.sizes = list(controller.categories.values()) #categories_counts
-
-        self.fig = Figure(dpi=100) #figsize=(width, height)
+        self.fig = Figure(dpi=100)
         self.plot_axes_categories = self.fig.add_subplot(111)
-
-        # self.fig.tight_layout()
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.draw()
@@ -113,24 +102,13 @@ class PageCategoryPieChart(Frame):
         self.redraw()
 
     def redraw(self):
-        # f, a = plt.subplots()
-        # a.pie(self.sizes, labels=self.labels, autopct='%1.1f%%', shadow=False, startangle=90)
-        # a.axis('equal')
-
-        self.labels = list(self.controller.categories.keys())#categories
-        self.sizes = list(self.controller.categories.values())#categories_counts
+        self.labels = list(self.controller.categories.keys())
+        self.sizes = list(self.controller.categories.values())
         self.plot_axes_categories.pie(self.sizes, labels=self.labels, autopct='%1.1f%%', shadow=False, startangle=90)
-
         self.canvas.draw()
 
     def tkraise(self, aboveThis=None):
-        # Get a reference to StartPage
-        # start_page = self.controller.frames['StartPage']
-
-        # Get the selected item from start_page
-        # self.label.configure(text=start_page.getvalue())
         self.redraw()
-        # Call the real .tkraise
         super().tkraise(aboveThis)
 
 
@@ -154,48 +132,24 @@ class PageSeverityPieChart(Frame):
                              command=lambda: controller.show_frame(PageSummary))
         button3.pack()
 
-        # labels = severities
-        # sizes = severities_counts
-
-        labels = list(controller.severity.keys())#categories
-        sizes = list(controller.severity.values())#categories_counts
-
-        # f, a = plt.subplots()
-        # a.pie(sizes, labels=labels, autopct='%1.1f%%', shadow=False, startangle=90)
-        # a.axis('equal')
-        #
-
-
         self.fig = Figure(dpi=100) #figsize=(width, height)
         self.plot_axes = self.fig.add_subplot(111)
-
-        # self.fig.tight_layout()
 
         self.canvas = FigureCanvasTkAgg(self.fig, self)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
 
-        #
-        # canvas = FigureCanvasTkAgg(f, self)
-        # canvas.draw()
-        # canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
-
-        toolbar = NavigationToolbar2Tk(self.canvas, self)  # na dole wykresu
+        toolbar = NavigationToolbar2Tk(self.canvas, self)  # on the bottom
         toolbar.update()
         self.canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
 
-        self.redraw() # needed?
+        self.redraw()
 
     def redraw(self):
-        # f, a = plt.subplots()
-        # a.pie(self.sizes, labels=self.labels, autopct='%1.1f%%', shadow=False, startangle=90)
-        # a.axis('equal')
-
-        self.labels = list(self.controller.severity.keys())#categories
-        self.sizes = list(self.controller.severity.values())#categories_counts
+        self.labels = list(self.controller.severity.keys())
+        self.sizes = list(self.controller.severity.values())
         self.plot_axes.pie(self.sizes, labels=self.labels, autopct='%1.1f%%', shadow=False, startangle=90)
-
-        self.canvas.draw() #?
+        self.canvas.draw()
 
 class PageSummary(Frame):
 
@@ -217,9 +171,8 @@ class PageSummary(Frame):
                          command=lambda: controller.show_frame(PageSeverityPieChart))
         button3.pack()
 
-        # columns = ['Category', 'Signatures','Severity']
 
-        ## Treeview Widget
+        ## Treeview Widget - table
         self.tv1 = ttk.Treeview(self)
 
         treescrolly = Scrollbar(self, orient="vertical",
@@ -231,17 +184,8 @@ class PageSummary(Frame):
         treescrollx.pack(side="bottom", fill="x")  # make the scrollbar fill the x axis of the Treeview widget
         treescrolly.pack(side="right", fill="y")  # make the scrollbar fill the y axis of the Treeview widget
 
-        # print(self.controller.alerts_df.columns.values)
-        # if 'alert.metadata.created_at' not in self.controller.alerts_df.columns.values:
-        #     return
         self.columns = ['alert.metadata.created_at', 'alert.category',  'alert.severity', 'http.hostname', 'http.url']
 
-        # data_sec = self.controller.alerts_df
-        # data_alerts_only = self.controller.alerts_df.loc[self.controller.alerts_df['alert.metadata.created_at'].notnull(), ['alert.metadata.created_at', 'alert.category',
-        #                                                       'alert.severity', 'http.hostname', 'http.url']]
-        # print(data_alerts_only)
-        # df = data_alerts_only
-        #
         self.tv1.delete(*self.tv1.get_children())
         self.tv1["columns"] = self.columns #list(df.columns)
 
@@ -256,7 +200,7 @@ class PageSummary(Frame):
         if 'alert.category' not in self.controller.alerts_df:  # alerts are flattened here
             return
         df_rows = self.controller.alerts_df[self.columns].to_numpy().tolist()
-        self.tv1.delete(*self.tv1.get_children())
+        self.tv1.delete(*self.tv1.get_children())       # remove previous content
         for row in df_rows:
             self.tv1.insert("", "end", values=row)
 

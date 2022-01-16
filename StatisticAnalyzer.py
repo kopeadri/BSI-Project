@@ -5,14 +5,12 @@ import os
 import time
 
 class StatisticAnalyzer:
-    def __init__(self, file_path, capture_packets):
+    def __init__(self, file_path, capture_packets, result_dir="."):
         self.pcap_file_path = file_path
         self.capture_packets = capture_packets
-        self.result_dir = "."  # na wszelki
+        self.result_dir = result_dir
 
     def analyze(self):
-
-        # x-axis temporal resolution used during graphing.
         timestep = 1  # float(sys.argv[2])
 
         # reading packets from a pcap file
